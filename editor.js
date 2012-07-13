@@ -231,35 +231,39 @@ function createSharedEditor(column, originalRenderCell){
 }
 
 function showEditor(cmp, column, cell, value){
-	// Places a shared editor into the newly-active cell in the column.
-	// Also called when rendering an editor in an "always-on" editor column.
-	
-	var grid = column.grid,
-		editor = column.editor,
-		isWidget = cmp.domNode;
-	
-	// for regular inputs, we can update the value before even showing it
-	if(!isWidget){ updateInputValue(cmp, value); }
-	
-	cell.innerHTML = "";
-	put(cell, cmp.domNode || cmp);
-	
-	if(isWidget){
-		// For widgets, ensure startup is called before setting value,
-		// to maximize compatibility with flaky widgets like dijit/form/Select.
-		if(!cmp._started){ cmp.startup(); }
-		
-		// Set value, but ensure it isn't processed as a user-generated change.
-		// (Clear flag on a timeout to wait for delayed onChange to fire first)
-		cmp._dgridIgnoreChange = true;
-		cmp.set("value", value);
-		setTimeout(function(){ cmp._dgridIgnoreChange = false; }, 0);
-	}
-	// track previous value for short-circuiting or in case we need to revert
-	cmp._dgridLastValue = value;
-	// if this is an editor with editOn, also update activeValue
-	// (activeOptions will have been updated previously)
-	if(activeCell){ activeValue = value; }
+    // Places a shared editor into the newly-active cell in the column.
+    // Also called when rendering an editor in an "always-on" editor column.
+    
+    var grid = column.grid,
+    editor = column.editor,
+    isWidget = cmp.domNode;
+    
+    // for regular inputs, we can update the value before even showing it
+    if(!isWidget){ updateInputValue(cmp, value); }
+    
+    cell.innerHTML = "";
+    put(cell, cmp.domNode || cmp);
+    
+    if(isWidget){
+        // For widgets, ensure startup is called before setting value,
+        // to maximize compatibility with flaky widgets like dijit/form/Select.
+        if(!cmp._started){ cmp.startup(); }
+        
+        // Set value, but ensure it isn't processed as a user-generated change.
+        // (Clear flag on a timeout to wait for delayed onChange to fire first)
+        cmp._dgridIgnoreChange = true;
+        cmp.set("value", value);
+        if (column.onEdit) {
+            var obj = grid.cell(cell).row.data;
+            column.onEdit(obj, cmp);
+        }
+        setTimeout(function(){ cmp._dgridIgnoreChange = false; }, 0);
+    }
+    // track previous value for short-circuiting or in case we need to revert
+    cmp._dgridLastValue = value;
+    // if this is an editor with editOn, also update activeValue
+    // (activeOptions will have been updated previously)
+    if(activeCell){ activeValue = value; }
 }
 
 function edit(cell) {
